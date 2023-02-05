@@ -10,7 +10,7 @@ import model.entities.Department;
 public class DepartmentService {
 
 	
-	private DepartmentDao dao = DaoFactory.createDepartmentDao();// # Faz a chamada do metodo DepartmentDao.
+	private DepartmentDao dao = DaoFactory.createDepartmentDao();// # Faz a chamada do metodo DepartmentDao. Injeção de dependencia.
 	
 	public List<Department> findAll() {
 		return dao.findAll();
