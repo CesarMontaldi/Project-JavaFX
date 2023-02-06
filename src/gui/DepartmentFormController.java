@@ -1,9 +1,12 @@
 package gui;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import db.DbException;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Constraints;
 import gui.util.Utils;
@@ -23,6 +26,8 @@ public class DepartmentFormController  implements Initializable {
 	
 	private DepartmentService service;
 	
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>(); // # Cria uma lista para adicionar objetos para ser escutados e depois ser feito alguma tratamento.
+	
 	@FXML
 	private TextField txtId;
 	
@@ -38,6 +43,18 @@ public class DepartmentFormController  implements Initializable {
 	@FXML
 	private Button btCancel;
 	
+	public void setDepartment(Department entity) {
+		this.entity = entity;
+	}
+	
+	public void setDepartmentService(DepartmentService service) {
+		this.service = service;
+	}
+	
+	public void subscribeDataChangeListener(DataChangeListener listener) { // # faz a adição na lista os objetos a serem tratados pela função DataChangeListener. Obs: os objetos que forem usar a função tem que implementar a interface DataChangeListener.
+		dataChangeListeners.add(listener);
+	}
+	
 	@FXML
 	public void onBtSaveAction(ActionEvent event) {
 		if (entity == null) {
@@ -51,6 +68,7 @@ public class DepartmentFormController  implements Initializable {
 		try {
 			entity = getFormdata();
 			service.saveOrUpdate(entity);
+			notifyDataChangedListeners();
 			Utils.currentStage(event).close();// # Fecha o Modal ao clicar em save.
 		}
 		catch (DbException e) {
@@ -58,6 +76,12 @@ public class DepartmentFormController  implements Initializable {
 		}
 	}
 	
+	private void notifyDataChangedListeners() {
+		for (DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}
+	}
+
 	private Department getFormdata() { // # Função responsavel por capturar os dados do formulario e retornar um novo objeto.
 		Department obj = new Department();// # Estancia um Departamento vazio.
 		
@@ -71,15 +95,7 @@ public class DepartmentFormController  implements Initializable {
 	public void onBtCancelAction(ActionEvent event) {
 		Utils.currentStage(event).close();// # Fecha o Modal ao clicar em cancel.
 	}
-	
-	public void setDepartment(Department entity) {
-		this.entity = entity;
-	}
-	
-	public void setDepartmentService(DepartmentService service) {
-		this.service = service;
-	}
-	
+
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
 		initializeNodes();
