@@ -46,8 +46,9 @@ public class DepartmentListController implements Initializable {
 	
 	@FXML
 	public void onBtNewAction(ActionEvent event) {
-		Stage parentStage = Utils.currentStage(event); 
-		createDialogForm("/gui/DepartmentForm.fxml", null);
+		Stage parentStage = Utils.currentStage(event);
+		Department obj = new Department();
+		createDialogForm(obj, "/gui/DepartmentForm.fxml", null);
 	}
 	
 	public void SetDepartmentService(DepartmentService service) {
@@ -76,10 +77,14 @@ public class DepartmentListController implements Initializable {
 		tableViewDepartment.setItems(obsList);
 	}
 	
-	private void createDialogForm(String absoluteName, Stage parentStage) {
+	private void createDialogForm(Department obj, String absoluteName, Stage parentStage) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			Pane pane = loader.load();
+			
+			DepartmentFormController controller = loader.getController();// # Pega uma instancia do controlador que acabou de ser carregado acima que é um form..
+			controller.setDepartment(obj);// # Faz a injeção do departamento. 
+			controller.updateFormData();// # Carrega os dados do obj no form.
 			
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Enter Department date");
