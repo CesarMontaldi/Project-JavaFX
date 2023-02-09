@@ -28,6 +28,15 @@ public class Utils {
 			return null;
 		}
 	}
+	
+	// #Função responsavel por assegurar que vai ser passado um Salario base valido.
+	public static Double tryParseToDouble(String str) {
+		try {
+			return Double.parseDouble(str);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
 
 	// # Metodo para formatar tuma tabela com dados do tipo Date.
 	public static <T> void formatTableColumnDate(TableColumn<T, Date> tableColumn, String format) {

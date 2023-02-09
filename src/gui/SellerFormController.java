@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -43,9 +45,7 @@ public class SellerFormController implements Initializable {
 
 	private DepartmentService departmentService;
 
-	private List<DataChangeListener> dataChangeListeners = new ArrayList<>(); // # Cria uma lista para adicionar objetos
-																				// para ser escutados e depois ser feito
-																				// alguma tratamento.
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>(); // # Cria uma lista para adicionar objetos para ser escutados e depois ser feito alguma tratamento.
 
 	@FXML
 	private TextField txtId;
@@ -94,11 +94,7 @@ public class SellerFormController implements Initializable {
 		this.departmentService = departmentService;
 	}
 
-	public void subscribeDataChangeListener(DataChangeListener listener) { // # faz a adição na lista os objetos a serem
-																			// tratados pela função DataChangeListener.
-																			// Obs: os objetos que forem usar a função
-																			// tem que implementar a interface
-																			// DataChangeListener.
+	public void subscribeDataChangeListener(DataChangeListener listener) { // # faz a adição na lista os objetos a serem tratados pela função DataChangeListener. Obs: os objetos que forem usar a função tem que implementar a interface DataChangeListener.
 		dataChangeListeners.add(listener);
 	}
 
@@ -130,24 +126,38 @@ public class SellerFormController implements Initializable {
 		}
 	}
 
-	private Seller getFormdata() { // # Função responsavel por capturar os dados do formulario e retornar um novo
-									// objeto.
+	private Seller getFormdata() { // # Função responsavel por capturar os dados do formulario e retornar um novo objeto.
 		Seller obj = new Seller();// # Estancia um Departamento vazio.
 
-		ValidationException exception = new ValidationException("Validation error");// # Faz instansiação da classe
-																					// ValidationException para ser
-																					// usada.
+		ValidationException exception = new ValidationException("Validation error");// # Faz instansiação da classe ValidationException para ser usada.
 
-		obj.setId(Utils.tryParseToInt(txtId.getText())); // # Pega o campo Id do formulario e a funcção
-															// Utils.tryParseToInt faz a verificação caso estaja null
-															// vai inserir um novo departamento caso contrario faz um
-															// Update.
+		obj.setId(Utils.tryParseToInt(txtId.getText())); // # Pega o campo Id do formulario e a funcção Utils.tryParseToInt faz a verificação caso estaja null vai inserir um novo departamento caso contrario faz um Update.
 		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
-			exception.addError("name", " Field can't be empty"); // # Lança uma exceção caso o capmo name não for
-																	// preenchido.
+			exception.addError("name", " Field can't be empty"); // # Lança uma exceção caso o campo Name não for preenchido.
 		}
 		obj.setName(txtName.getText());
-
+		
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addError("email", " Field can't be empty"); // # Lança uma exceção caso o campo Email não for preenchido.
+		}
+		obj.setEmail(txtEmail.getText());
+		
+		if (dpBirthDate.getValue() == null) {
+			exception.addError("birthDate", " Field can't be empty"); // # Lança uma exceção caso o campo BirthDate não for preenchido.
+		}
+		else {
+			Instant instant = Instant.from(dpBirthDate.getValue().atStartOfDay(ZoneId.systemDefault()));// # Pega o valor setado no campo BirthDate e para fazermos o tratamento.
+			obj.setBirthDate(Date.from(instant));
+		}
+		
+		if (txtBaseSalary.getText() == null || txtBaseSalary.getText().trim().equals("")) {
+			exception.addError("baseSalary", " Field can't be empty"); // # Lança uma exceção caso o campo BaseSalary não for preenchido.
+		}
+		
+		obj.setBaseSalary(Utils.tryParseToDouble(txtBaseSalary.getText()));
+		
+		obj.setDepartment(comboBoxDepartment.getValue());//  # Faz a associação do departamento.
+		
 		if (exception.getErrors().size() > 0) {
 			throw exception;
 		}
@@ -203,18 +213,24 @@ public class SellerFormController implements Initializable {
 																			// DepartmentService estiver null;
 		}
 		List<Department> list = departmentService.findAll();// # Carrega os dados que estão no banco de dados.
-		obsList = FXCollections.observableArrayList(list);// # Carrega os dados na lista obsList criada no começo dessa
-															// pagina.
+		obsList = FXCollections.observableArrayList(list);// # Carrega os dados na lista obsList criada no começo dessa pagina.
 		comboBoxDepartment.setItems(obsList);// # Seta a lista e faz a associação ao ComboBox de departamentos.
 	}
 
 	private void setErrorMessages(Map<String, String> errors) { // # metodo responsavel por setar a menssagem de erro.
 		Set<String> fields = errors.keySet(); // # Recupera o nome dos campos com erro.
 
-		// # verifica qual o campo que lançou o erro e seta a mensagem de erro.
-		if (fields.contains("name")) {
-			labelErrorName.setText(errors.get("name"));
-		}
+		// # verifica se o campo Name lançou algum erro e seta a mensagem de erro.
+		labelErrorName.setText((fields.contains("name") ? errors.get("name") : "")); 
+		
+		// # verifica se o campo Email lançou algum erro e seta a mensagem de erro.
+		labelErrorEmail.setText((fields.contains("email") ? errors.get("email") : ""));
+		
+		// # verifica se o campo BaseSalary lançou algum erro e seta a mensagem de erro.
+		labelErrorBaseSalary.setText((fields.contains("baseSalary") ? errors.get("baseSalary") : ""));
+		
+		// # verifica se o campo BirthDate lançou algum erro e seta a mensagem de erro.
+		labelErrorBirthDate.setText((fields.contains("birthDate") ? errors.get("birthDate") : ""));
 	}
 	// # Metodo para inicializar o comboBox. 
 	private void initializeComboBoxDepartment() {
